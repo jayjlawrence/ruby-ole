@@ -76,7 +76,7 @@ module Ole # :nodoc:
 			@sb_file = nil
 			# if the io object has data, we should load it, otherwise start afresh
 			# this should be based on the mode string rather.
-			@io.size > 0 ? load : clear
+			@io.stat.size > 0 ? load : clear
 		end
 
 		# somewhat similar to File.open, the open class method allows a block form where
@@ -187,7 +187,7 @@ module Ole # :nodoc:
 			# serialize the dirents using the bbat
 			RangesIOResizeable.open @bbat, 'w', :first_block => @header.dirent_start do |io|
 				io.write @dirents.map { |dirent| dirent.to_s }.join
-				padding = (io.size / @bbat.block_size.to_f).ceil * @bbat.block_size - io.size
+				padding = (io.stat.size / @bbat.block_size.to_f).ceil * @bbat.block_size - io.stat.size
 				io.write 0.chr * padding
 				@header.dirent_start = io.first_block
 			end
@@ -243,7 +243,7 @@ module Ole # :nodoc:
 				if new_num_mbat_blocks != num_mbat_blocks
 					# need more space for the mbat.
 					num_mbat_blocks = new_num_mbat_blocks
-				elsif io.size != bbat_data_len
+				elsif io.stat.size != bbat_data_len
 					# need more space for the bat
 					# this may grow the bbat, depending on existing available blocks
 					io.truncate bbat_data_len
@@ -625,7 +625,7 @@ module Ole # :nodoc:
 				# can be made.
 				# maybe its ok to just seek out there later??
 				max = @ranges.map { |pos, len| pos + len }.max || 0
-				@io.truncate max if max > @io.size
+				@io.truncate max if max > @io.stat.size
 			end
 		end
 
